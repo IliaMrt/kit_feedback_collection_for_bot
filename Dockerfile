@@ -6,6 +6,5 @@ COPY . .
 
 RUN npm i
 
-EXPOSE 3100
-
+EXPOSE 3100:3100
 CMD ["npm", "run", "start:docker"]

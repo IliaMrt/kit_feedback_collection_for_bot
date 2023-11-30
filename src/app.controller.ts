@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
-import { User } from './auth/Decorator/user';
-import { AuthGuard } from './auth/Decorator/auth.guard';
+// import { User } from './auth/Decorator/user';
+// import { AuthGuard } from './auth/Decorator/auth.guard';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from './auth/Decorator/jwt-auth.guard';
+// import { JwtAuthGuard } from './auth/Decorator/jwt-auth.guard';
 
 @Controller('kit')
 export class AppController {

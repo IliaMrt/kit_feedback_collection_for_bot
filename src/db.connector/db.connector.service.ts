@@ -1,9 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { GoogleSpreadsheet } from "google-spreadsheet";
-import { JWT } from "google-auth-library";
-import { FeedbackForWriteDto } from "./dto/feedback.for.write.dto";
-import { UserDto } from "../auth/dto/user.dto";
-import * as process from "process";
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { GoogleSpreadsheet } from 'google-spreadsheet';
+import { JWT } from 'google-auth-library';
+import { FeedbackForWriteDto } from './dto/feedback.for.write.dto';
+// import { UserDto } from "../auth/dto/user.dto";
+import * as process from 'process';
 
 @Injectable()
 export class DbConnectorService {
@@ -11,7 +11,7 @@ export class DbConnectorService {
     const serviceAccountAuth = new JWT({
       email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
       key: process.env.GOOGLE_PRIVATE_KEY,
-      scopes: ["https://www.googleapis.com/auth/spreadsheets"]
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
     const doc = new GoogleSpreadsheet(docUrl, serviceAccountAuth);
     await doc.loadInfo();
@@ -19,11 +19,11 @@ export class DbConnectorService {
   }
 
   async getLessonsByUser(user) {
-    console.log("KIT - DbConnector Service - getLessonsByUser at", new Date());
+    console.log('KIT - DbConnector Service - getLessonsByUser at', new Date());
 
     const sheet = await this.docInit(
       process.env.SCHEDULE_URL,
-      process.env.TEACHER_SHEET_NAME
+      process.env.TEACHER_SHEET_NAME,
     );
 
     const rows = await sheet.getRows();
@@ -32,7 +32,7 @@ export class DbConnectorService {
       startRowIndex: 0,
       endRowIndex: 1,
       startColumnIndex: 0,
-      endColumnIndex: rows.length - 1
+      endColumnIndex: rows.length - 1,
     });
     await sheet.loadCells();
 
@@ -40,7 +40,7 @@ export class DbConnectorService {
     console.log(teacher);
     const lessons = {
       mainLessons: [],
-      restLessons: []
+      restLessons: [],
     };
 
     const mainSet = new Set();
@@ -65,51 +65,51 @@ export class DbConnectorService {
 
   async getTeacherByEmail(user) {
     console.log(
-      "KIT - DbConnector Service - Get Teacher By Email at",
-      new Date()
+      'KIT - DbConnector Service - Get Teacher By Email at',
+      new Date(),
     );
 
     const sheet = await this.docInit(
       process.env.USERS_LIST_URL,
-      process.env.USERS_SHEET_NAME
+      process.env.USERS_SHEET_NAME,
     );
     const rows = await sheet.getRows();
     for (const row of rows) {
-      if (row.get("email") == user) return row.get("name");
+      if (row.get('email') == user) return row.get('name');
     }
     return null;
   }
 
   async getClassesByLesson(lessonName) {
     console.log(
-      "KIT - DbConnector Service - Get Classes By Lesson at",
-      new Date()
+      'KIT - DbConnector Service - Get Classes By Lesson at',
+      new Date(),
     );
 
     const sheet = await this.docInit(
       process.env.LESSONS_LIST_URL,
-      process.env.LESSON_SHEET_NAME
+      process.env.LESSON_SHEET_NAME,
     );
 
     const result = new Set();
 
     const rows = await sheet.getRows();
     for (const row of rows) {
-      if (row.get("Предмет") == lessonName) result.add(row.get("Класс"));
+      if (row.get('Предмет') == lessonName) result.add(row.get('Класс'));
     }
 
     return Array.from(result);
   }
 
   async getKidsByClasses(class_name) {
-    console.log("KIT - DbConnector Service - getKidsByClasses at", new Date());
+    console.log('KIT - DbConnector Service - getKidsByClasses at', new Date());
     const sheet = await this.docInit(
       process.env.CLASSES_LIST_URL,
-      process.env.KIDS_SHEET_NAME
+      process.env.KIDS_SHEET_NAME,
     );
     const rows = await sheet.getRows();
     if (sheet.headerValues.findIndex((v) => v == class_name) < 0)
-      throw new HttpException("Класс не найден", HttpStatus.NOT_FOUND);
+      throw new HttpException('Класс не найден', HttpStatus.NOT_FOUND);
     const res = [];
     rows.forEach((row) => {
       if (row.get(class_name))
@@ -119,7 +119,7 @@ export class DbConnectorService {
           student: row.get(class_name),
           attended: true,
           hard: true,
-          soft: true
+          soft: true,
         });
     });
     return res;
@@ -128,19 +128,19 @@ export class DbConnectorService {
   async writeLastVisit(user: string) {
     const sheet = await this.docInit(
       process.env.USERS_LIST_URL,
-      process.env.USERS_SHEET_NAME
+      process.env.USERS_SHEET_NAME,
     );
     const rows = await sheet.getRows();
     for (const row of rows) {
-      if (row.get("name") == user) {
+      if (row.get('name') == user) {
         row.set(
-          "lastVisit",
+          'lastVisit',
           `${new Date().toLocaleDateString(
-            "ru-Ru",
-            {}
-          )} в ${new Date().toLocaleTimeString("ru-RU", {
-            timeZone: "Europe/Moscow"
-          })}`
+            'ru-Ru',
+            {},
+          )} в ${new Date().toLocaleTimeString('ru-RU', {
+            timeZone: 'Europe/Moscow',
+          })}`,
         );
         await row.save();
         return;
@@ -149,7 +149,7 @@ export class DbConnectorService {
   }
 
   async writeFeedBack(feedback: FeedbackForWriteDto) {
-    console.log("KIT - DbConnector Service - writeFeedBack", new Date());
+    console.log('KIT - DbConnector Service - writeFeedBack', new Date());
     console.log(JSON.stringify(feedback));
     const teacher = feedback.form.teacher;
 
@@ -157,7 +157,7 @@ export class DbConnectorService {
 
     const sheet = await this.docInit(
       process.env.WRITE_LIST_URL,
-      process.env.WRITE_SHEET_NAME
+      process.env.WRITE_SHEET_NAME,
     );
     const result = [];
     const date = `${new Date().getDate()}/${
@@ -183,7 +183,7 @@ export class DbConnectorService {
         homework: feedback.form.homework,
         date: date,
         time: time,
-        createdAt: new Date().toLocaleString()
+        createdAt: new Date().toLocaleString(),
       }),
     );
     // console.log(JSON.stringify(result));
@@ -191,64 +191,64 @@ export class DbConnectorService {
   }
 
   async saveUser(user) {
-    console.log("KIT - DbConnector Service - Save User at", new Date());
+    console.log('KIT - DbConnector Service - Save User at', new Date());
 
     const sheet = await this.docInit(
       process.env.USERS_LIST_URL,
-      process.env.USERS_SHEET_NAME
+      process.env.USERS_SHEET_NAME,
     );
     await sheet.addRow(user);
   }
 
-  async findUser(userDto: UserDto) {
+  async findUser(userDto: any) {
     console.log(
-      "KIT - DbConnector Service - Find User By Email at",
-      new Date()
+      'KIT - DbConnector Service - Find User By Email at',
+      new Date(),
     );
     const sheet = await this.docInit(
       process.env.USERS_LIST_URL,
-      process.env.USERS_SHEET_NAME
+      process.env.USERS_SHEET_NAME,
     );
     const rows = await sheet.getRows();
     for (const row of rows) {
-      if (row.get("email") == userDto.email)
+      if (row.get('email') == userDto.email)
         return {
-          password: row.get("password"),
-          activated: row.get("activated") === "TRUE"
+          password: row.get('password'),
+          activated: row.get('activated') === 'TRUE',
         };
     }
     return null;
   }
 
   async findUserByLink(activationLink: string) {
-    console.log("KIT - DbConnector Service - Find User By Link at", new Date());
+    console.log('KIT - DbConnector Service - Find User By Link at', new Date());
 
     const sheet = await this.docInit(
       process.env.USERS_LIST_URL,
-      process.env.USERS_SHEET_NAME
+      process.env.USERS_SHEET_NAME,
     );
     const rows = await sheet.getRows();
     for (const row of rows) {
-      if (row.get("activationLink") == activationLink)
-        return row.get("email").toString();
+      if (row.get('activationLink') == activationLink)
+        return row.get('email').toString();
     }
     return null;
   }
 
   async saveActivatedUser(email: string) {
     console.log(
-      "KIT - DbConnector Service - Save Activated User at",
-      new Date()
+      'KIT - DbConnector Service - Save Activated User at',
+      new Date(),
     );
 
     const sheet = await this.docInit(
       process.env.USERS_LIST_URL,
-      process.env.USERS_SHEET_NAME
+      process.env.USERS_SHEET_NAME,
     );
     const rows = await sheet.getRows();
     for (let i = 0; i < rows.length; i++) {
-      if (rows[i].get("email") == email) {
-        await rows[i].set("activated", true);
+      if (rows[i].get('email') == email) {
+        await rows[i].set('activated', true);
         await rows[i].save();
         return;
       }
@@ -258,40 +258,40 @@ export class DbConnectorService {
   async deleteUser(email: string) {
     const sheet = await this.docInit(
       process.env.USERS_LIST_URL,
-      process.env.USERS_SHEET_NAME
+      process.env.USERS_SHEET_NAME,
     );
     const rows = await sheet.getRows();
     for (const row of rows) {
-      if (row.get("email") == email) await row.delete();
+      if (row.get('email') == email) await row.delete();
     }
   }
 
   async getLastVisit(nick) {
-    console.log("KIT - DbConnector Service - Get Last Visit at", new Date());
+    console.log('KIT - DbConnector Service - Get Last Visit at', new Date());
     // console.log(userName);
     const sheet = await this.docInit(
       process.env.USERS_LIST_URL,
-      process.env.USERS_SHEET_NAME
+      process.env.USERS_SHEET_NAME,
     );
     const rows = await sheet.getRows();
 
     for (const row of rows) {
-      if (row.get("nick") == nick)
-        return row.get("lastVisit") == "" ? "не найден" : row.get("lastVisit");
+      if (row.get('nick') == nick)
+        return row.get('lastVisit') == '' ? 'не найден' : row.get('lastVisit');
     }
 
-    return "не найден";
+    return 'не найден';
   }
 
   async getUserByNick(user) {
     const sheet = await this.docInit(
       process.env.USERS_LIST_URL,
-      process.env.USERS_SHEET_NAME
+      process.env.USERS_SHEET_NAME,
     );
     console.log(user);
     const rows = await sheet.getRows();
     for (const row of rows) {
-      if (row.get("nick") == user) return row.get("name");
+      if (row.get('nick') == user) return row.get('name');
     }
     return null;
   }
