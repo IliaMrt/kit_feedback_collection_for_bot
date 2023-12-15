@@ -35,4 +35,8 @@ export class AppService {
     console.log('KIT - Main Service - get Last Visit at', new Date());
     return await this.dbConnector.getLastVisit(user);
   }
+
+  async getUpdate() {
+     return await this.dbConnector.getUpdate()
+  }
 }

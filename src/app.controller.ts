@@ -1,9 +1,14 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AppService } from './app.service';
-// import { User } from './auth/Decorator/user';
-// import { AuthGuard } from './auth/Decorator/auth.guard';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-// import { JwtAuthGuard } from './auth/Decorator/jwt-auth.guard';
 
 @Controller('kit')
 export class AppController {
@@ -76,5 +81,11 @@ export class AppController {
   @Get('get-classes-by-lesson/:lesson')
   async getClassesByLesson(@Param('lesson') lessonName) {
     return await this.appService.getClassesByLesson(lessonName);
+  }
+
+  @ApiTags('Main functionality')
+  @Get('update')
+  async getUpdate() {
+    return this.appService.getUpdate();
   }
 }

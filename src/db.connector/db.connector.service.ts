@@ -4,6 +4,7 @@ import { JWT } from 'google-auth-library';
 import { FeedbackForWriteDto } from './dto/feedback.for.write.dto';
 // import { UserDto } from "../auth/dto/user.dto";
 import * as process from 'process';
+import { FullInformationDto } from './dto/full.information.dto';
 
 @Injectable()
 export class DbConnectorService {
@@ -294,5 +295,137 @@ export class DbConnectorService {
       if (row.get('nick') == user) return row.get('name');
     }
     return null;
+  }
+
+  async getClassStudents() {
+    console.log('KIT - DbConnector Service - getClassStudents at', new Date());
+    const sheet = await this.docInit(
+      process.env.CLASSES_LIST_URL,
+      process.env.KIDS_SHEET_NAME,
+    );
+    const rows = await sheet.getRows();
+    // const res = [];
+    const res = new Map<string, string[]>();
+    const headers = sheet.headerValues;
+    // console.log(headers);
+    rows.forEach((row) => {
+      headers.forEach((header) => {
+        if (!res.has(header)) {
+          res.set(header, []);
+        }
+        const currValue = row.get(header);
+        if (currValue) res.get(header).push(currValue);
+      });
+    });
+    /*    rows.forEach((row) => {
+      headers.forEach(header=>{
+
+      })
+    });*/
+    console.log(res.size);
+    // return res;
+    // res.set('aaa',headers)
+    return Array.from(res);
+  }
+
+  async getUpdate(): Promise<FullInformationDto> {
+    const res = new FullInformationDto();
+    res.classStudents = await this.getClassStudents();
+    res.lastVisits = await this.getLastVisits();
+    res.lessonClass = await this.getLessonClass();
+    res.users = await this.getUsers();
+    res.lessonTeachers = await this.getLessonTeachers();
+    return res;
+  }
+
+  private async getLastVisits() {
+    console.log('KIT - DbConnector Service - Get Last Visits at', new Date());
+    const sheet = await this.docInit(
+      process.env.USERS_LIST_URL,
+      process.env.USERS_SHEET_NAME,
+    );
+    const rows = await sheet.getRows();
+    const res = new Map();
+    for (const row of rows) {
+      if (row.get('nick')) res.set(row.get('nick'), row.get('lastVisit'));
+    }
+
+    return Array.from(res);
+  }
+
+  private async getLessonClass() {
+    console.log(
+      'KIT - DbConnector Service - Get Classes By Lessons at',
+      new Date(),
+    );
+
+    const sheet = await this.docInit(
+      process.env.LESSONS_LIST_URL,
+      process.env.LESSON_SHEET_NAME,
+    );
+
+    const result = new Map();
+
+    const rows = await sheet.getRows();
+    for (const row of rows) {
+      const currLesson = row.get('Предмет');
+      const currClass = row.get('Класс');
+      if (result.has(currLesson)) {
+        result.get(currLesson).push(currClass);
+      } else {
+        result.set(currLesson, [currClass]);
+      }
+    }
+
+    return Array.from(result);
+  }
+
+  private async getUsers() {
+    console.log('KIT - DbConnector Service - Get Users', new Date());
+    const sheet = await this.docInit(
+      process.env.USERS_LIST_URL,
+      process.env.USERS_SHEET_NAME,
+    );
+    const rows = await sheet.getRows();
+    const res = new Map();
+    for (const row of rows) {
+      res.set(row.get('nick'), row.get('name'));
+    }
+
+    return Array.from(res);
+  }
+
+  private async getLessonTeachers() {
+    console.log(
+      'KIT - DbConnector Service - getLessonsTeachers at',
+      new Date(),
+    );
+
+    const sheet = await this.docInit(
+      process.env.SCHEDULE_URL,
+      process.env.TEACHER_SHEET_NAME,
+    );
+
+    const rows = await sheet.getRows();
+    const res = new Map();
+    for (const row of rows) {
+      const currTeacher = row.get('ФИО');
+      const currClass = row.get('Класс');
+      const currLesson = row.get('Предмет');
+      if (res.has(currTeacher)) {
+        if (res.get(currTeacher).has(currLesson)) {
+          res.get(currTeacher).get(currLesson).push(currClass);
+        } else {
+          res.get(currTeacher).set(currLesson, [currClass]);
+        }
+      } else {
+        res.set(currTeacher, new Map([[currLesson, [currClass]]]));
+      }
+    }
+    const r = Array.from(res.entries()).map((v) => [
+      v[0],
+      Array.from(v[1].entries()).map((e) => e),
+    ]);
+    return Array.from(r);
   }
 }
