@@ -144,7 +144,7 @@ export class DbConnectorService {
           })}`,
         );
         await row.save();
-        return;
+        return 'Ok';
       }
     }
   }
@@ -153,8 +153,8 @@ export class DbConnectorService {
     console.log('KIT - DbConnector Service - writeFeedBack', new Date());
     console.log(JSON.stringify(feedback));
     const teacher = feedback.form.teacher;
-
-    await this.writeLastVisit(teacher);
+    console.log('Writing last visit', new Date());
+    console.log(await this.writeLastVisit(teacher));
 
     const sheet = await this.docInit(
       process.env.WRITE_LIST_URL,
@@ -188,7 +188,8 @@ export class DbConnectorService {
       }),
     );
     // console.log(JSON.stringify(result));
-    await sheet.addRows(result);
+    console.log('Writing feedback', new Date());
+    console.log(await sheet.addRows(result));
   }
 
   async saveUser(user) {
